@@ -11,3 +11,7 @@ As I stated looking at the kinds of sounds that are produced by the Atari sound 
 
 For the project I am using Juce 7 and c++. 
 For testing I am using Juce's AudioPluginHost.app
+
+Current GUI status
+
+<img width="378" alt="Screenshot 2024-05-28 at 4 01 38 PM" src="https://github.com/mimorel/Atari_Distortion_PlugIn/assets/14367088/ed248fb1-0cd5-4406-aab2-b8ada062849d">
