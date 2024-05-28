@@ -36,7 +36,11 @@ private:
     
     juce::Slider midiVolume; // volume for outgoing sound
     
-    //juce::
+    juce::Slider freqSlider; // frequency float value for high pass filter
+    
+    juce::Slider resVal; // resonance float value for high pass filter
+    
+
     
 
    // JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AtDistortionPluginAudioProcessorEditor)

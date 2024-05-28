@@ -14,50 +14,6 @@
 
 
 
-
-template <typename Type>
-class Distortion
-{
-public:
-    //==============================================================================
-    Distortion() {
-        
-        auto& waveshaper = processorChain.template get<waveshaperIndex>();         // [5]
-                waveshaper.functionToUse = [] (Type x)
-                                           {
-                                               return juce::jlimit (Type (-0.1), Type (0.1), x); // [6]
-                                           };
-    }
-
-    //==============================================================================
-    void prepare (const juce::dsp::ProcessSpec& spec)
-    {
-        processorChain.prepare (spec);
-    }
-
-    //==============================================================================
-    template <typename ProcessContext>
-    void process (const ProcessContext& context) noexcept
-    {
-        processorChain.process (context);
-    }
-
-    //==============================================================================
-    void reset() noexcept {
-        processorChain.reset();
-    }
-
-private:
-    enum
-        {
-            waveshaperIndex                // [2]
-        };
-     
-        juce::dsp::ProcessorChain<juce::dsp::WaveShaper<Type>> processorChain;
-    //==============================================================================
-};
-
-
 //==============================================================================
 AtDistortionPluginAudioProcessor::AtDistortionPluginAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -68,15 +24,15 @@ AtDistortionPluginAudioProcessor::AtDistortionPluginAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       )
+                       ),  highPassFilter(juce::dsp::IIR::Coefficients<float>::makeHighPass(44100.0f, 600.0f, 0.1f))
 #endif
 {
+    freqValue= 600.0f; //initializing highpass frequency to avoid errors
 }
 
 AtDistortionPluginAudioProcessor::~AtDistortionPluginAudioProcessor()
 {
     
-  //  juce::dsp::ProcessorChain<Distortion<float>> fxChain;
 }
 
 //==============================================================================
@@ -141,11 +97,22 @@ void AtDistortionPluginAudioProcessor::changeProgramName (int index, const juce:
 {
 }
 
+
 //==============================================================================
 void AtDistortionPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
+    lastSampleRate = sampleRate;
+    
+    juce::dsp::ProcessSpec spec;
+    spec.sampleRate = sampleRate;
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.numChannels = getTotalNumInputChannels();
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+    
+   
+    highPassFilter.prepare(spec);
+    highPassFilter.reset();
 }
 
 void AtDistortionPluginAudioProcessor::releaseResources()
@@ -180,54 +147,33 @@ bool AtDistortionPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout
 }
 #endif
 
+
+void AtDistortionPluginAudioProcessor::updateFilter(){
+    float res =5.0f;
+    
+    *highPassFilter.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(lastSampleRate,freqValue,res);
+    std::cout<< freqValue;
+}
+
 void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 
 
 {
-    buffer.applyGain(noteOnVel);
+    buffer.applyGain(noteOnVel); //volume update
 
-    
-    
-    /* if listner = true
-  
-     go through audio buffer
-     for each note change to either
-     
-     */
-    
     
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
+ 
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-       // auto* channelData = buffer.getReadPointer(channel);
-        //singleSample = buffer.getSample( channel, channelData);
-       // processorChain.AtDistortionPluginAudioProcessor get<gainIndex>()
-        
-        //std::cout << channelData;
-      //  auto* channelData = buffer.getWritePointer (channel);
-       // buffer.processSample(5.0f);
-        //channelData.
+    juce::dsp::AudioBlock<float> block (buffer); //highpass filter 
+    updateFilter();
+    highPassFilter.process(juce::dsp::ProcessContextReplacing <float> (block));
 
-        // ..do something to the data...
-    }
    
     
 }
@@ -256,6 +202,13 @@ void AtDistortionPluginAudioProcessor::setStateInformation (const void* data, in
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
 }
+
+
+
+void updateParameters(){
+    //update parameters for process
+}
+
 
 //==============================================================================
 // This creates new instances of the plugin..

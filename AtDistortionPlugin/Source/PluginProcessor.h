@@ -18,6 +18,8 @@ class AtDistortionPluginAudioProcessor  : public juce::AudioProcessor
 public:
     
     float noteOnVel; // val of volume slider
+    float freqValue; // val of freq slider
+    float resValue; // val of resonance slider
     //==============================================================================
     AtDistortionPluginAudioProcessor();
     ~AtDistortionPluginAudioProcessor() override;
@@ -55,8 +57,16 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+    
+    void updateFilter();
+    
+   // void process(juce::dsp::ProcessContextReplacing<float> context);
+    void updateParameters();
 
 private:
+    float lastSampleRate;
+    
+    juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> highPassFilter;// allows us to process in stereo
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AtDistortionPluginAudioProcessor)
