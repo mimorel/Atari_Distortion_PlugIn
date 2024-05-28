@@ -28,6 +28,7 @@ AtDistortionPluginAudioProcessor::AtDistortionPluginAudioProcessor()
 #endif
 {
     freqValue= 600.0f; //initializing highpass frequency to avoid errors
+    resValue = 0.1f;
 }
 
 AtDistortionPluginAudioProcessor::~AtDistortionPluginAudioProcessor()
@@ -149,10 +150,8 @@ bool AtDistortionPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout
 
 
 void AtDistortionPluginAudioProcessor::updateFilter(){
-    float res =5.0f;
     
-    *highPassFilter.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(lastSampleRate,freqValue,res);
-    std::cout<< freqValue;
+    *highPassFilter.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(lastSampleRate,freqValue,resValue);
 }
 
 void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)

@@ -38,7 +38,7 @@ private:
     
     juce::Slider freqSlider; // frequency float value for high pass filter
     
-    juce::Slider resVal; // resonance float value for high pass filter
+    juce::Slider resSlider; // resonance float value for high pass filter
     
 
     

@@ -60,7 +60,6 @@ public:
     
     void updateFilter();
     
-   // void process(juce::dsp::ProcessContextReplacing<float> context);
     void updateParameters();
 
 private:
