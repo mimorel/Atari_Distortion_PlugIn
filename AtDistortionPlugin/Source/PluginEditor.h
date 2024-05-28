@@ -1,7 +1,8 @@
 /*
   ==============================================================================
 
-    This file contains the basic framework code for a JUCE plugin editor.
+
+    This class handles the GUI component of the Audio plugin
 
   ==============================================================================
 */
@@ -14,7 +15,8 @@
 //==============================================================================
 /**
 */
-class AtDistortionPluginAudioProcessorEditor  : public juce::AudioProcessorEditor
+class AtDistortionPluginAudioProcessorEditor  : public juce::AudioProcessorEditor,
+                                                private juce::Slider::Listener
 {
 public:
     AtDistortionPluginAudioProcessorEditor (AtDistortionPluginAudioProcessor&);
@@ -25,9 +27,17 @@ public:
     void resized() override;
 
 private:
+    
+    void sliderValueChanged(juce::Slider* slider) override;
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     AtDistortionPluginAudioProcessor& audioProcessor;
+    
+    
+    juce::Slider midiVolume; // volume for outgoing sound
+    
+    //juce::
+    
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AtDistortionPluginAudioProcessorEditor)
+   // JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AtDistortionPluginAudioProcessorEditor)
 };

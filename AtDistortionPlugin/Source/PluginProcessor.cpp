@@ -8,6 +8,55 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+//#include "Distortion.h"
+
+
+
+
+
+
+template <typename Type>
+class Distortion
+{
+public:
+    //==============================================================================
+    Distortion() {
+        
+        auto& waveshaper = processorChain.template get<waveshaperIndex>();         // [5]
+                waveshaper.functionToUse = [] (Type x)
+                                           {
+                                               return juce::jlimit (Type (-0.1), Type (0.1), x); // [6]
+                                           };
+    }
+
+    //==============================================================================
+    void prepare (const juce::dsp::ProcessSpec& spec)
+    {
+        processorChain.prepare (spec);
+    }
+
+    //==============================================================================
+    template <typename ProcessContext>
+    void process (const ProcessContext& context) noexcept
+    {
+        processorChain.process (context);
+    }
+
+    //==============================================================================
+    void reset() noexcept {
+        processorChain.reset();
+    }
+
+private:
+    enum
+        {
+            waveshaperIndex                // [2]
+        };
+     
+        juce::dsp::ProcessorChain<juce::dsp::WaveShaper<Type>> processorChain;
+    //==============================================================================
+};
+
 
 //==============================================================================
 AtDistortionPluginAudioProcessor::AtDistortionPluginAudioProcessor()
@@ -26,12 +75,14 @@ AtDistortionPluginAudioProcessor::AtDistortionPluginAudioProcessor()
 
 AtDistortionPluginAudioProcessor::~AtDistortionPluginAudioProcessor()
 {
+    
+  //  juce::dsp::ProcessorChain<Distortion<float>> fxChain;
 }
 
 //==============================================================================
 const juce::String AtDistortionPluginAudioProcessor::getName() const
 {
-    return JucePlugin_Name;
+    return "Atari Distortion Plug-in";
 }
 
 bool AtDistortionPluginAudioProcessor::acceptsMidi() const
@@ -130,7 +181,21 @@ bool AtDistortionPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout
 #endif
 
 void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+
+
 {
+    buffer.applyGain(noteOnVel);
+
+    
+    
+    /* if listner = true
+  
+     go through audio buffer
+     for each note change to either
+     
+     */
+    
+    
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
@@ -152,10 +217,19 @@ void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& b
     // interleaved by keeping the same state.
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
-        //auto* channelData = buffer.getWritePointer (channel);
+       // auto* channelData = buffer.getReadPointer(channel);
+        //singleSample = buffer.getSample( channel, channelData);
+       // processorChain.AtDistortionPluginAudioProcessor get<gainIndex>()
+        
+        //std::cout << channelData;
+      //  auto* channelData = buffer.getWritePointer (channel);
+       // buffer.processSample(5.0f);
+        //channelData.
 
         // ..do something to the data...
     }
+   
+    
 }
 
 //==============================================================================
@@ -186,6 +260,8 @@ void AtDistortionPluginAudioProcessor::setStateInformation (const void* data, in
 //==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+
+
 {
     return new AtDistortionPluginAudioProcessor();
 }
