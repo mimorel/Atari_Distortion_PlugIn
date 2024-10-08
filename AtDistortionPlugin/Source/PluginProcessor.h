@@ -9,6 +9,8 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "PluginEditor.h"
+
 
 //==============================================================================
 /**
@@ -17,9 +19,16 @@ class AtDistortionPluginAudioProcessor  : public juce::AudioProcessor
 {
 public:
     
-    float noteOnVel; // val of volume slider
+    float volValue; // val of volume slider
     float freqValue; // val of freq slider
     float resValue; // val of resonance slider
+    float wetValue; // value of wet/dry sldier
+    
+
+    
+    float processSample(float sample, bool bypassed);
+    void processBlock(float* data, int numSamples, bool bypassed);
+    
     //==============================================================================
     AtDistortionPluginAudioProcessor();
     ~AtDistortionPluginAudioProcessor() override;
@@ -64,8 +73,16 @@ public:
 
 private:
     float lastSampleRate;
+    void processFrame(bool bypassed);
+    void processSpectrum(float* data, int numBins);
+    void AtDistortionPluginAudioProcessorEditor();
+    
+    
+    
     
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> highPassFilter;// allows us to process in stereo
+    juce::dsp::Oscillator<float> squareWave; // square wave for distortion
+
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AtDistortionPluginAudioProcessor)

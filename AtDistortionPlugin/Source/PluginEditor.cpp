@@ -8,7 +8,6 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include "Distortion.h"
 
 //==============================================================================
 AtDistortionPluginAudioProcessorEditor::AtDistortionPluginAudioProcessorEditor (AtDistortionPluginAudioProcessor& p)
@@ -29,7 +28,6 @@ AtDistortionPluginAudioProcessorEditor::AtDistortionPluginAudioProcessorEditor (
     addAndMakeVisible(&midiVolume);
     
     // define parameteres for frequency of high pass filter
-    
     freqSlider.setSliderStyle(juce::Slider::LinearVertical);
     freqSlider.setRange(21.0f,2000.0f,10);
     freqSlider.setTextBoxStyle(juce::Slider::TextBoxAbove,true,100,50);
@@ -37,7 +35,7 @@ AtDistortionPluginAudioProcessorEditor::AtDistortionPluginAudioProcessorEditor (
     freqSlider.setTextValueSuffix(" Frequency");
     addAndMakeVisible(&freqSlider);
     
-    
+    // Parameters for Resonance
     resSlider.setSliderStyle(juce::Slider::LinearVertical);
     resSlider.setRange(0.1f,5.0f,.1f);
     resSlider.setTextBoxStyle(juce::Slider::TextBoxAbove,true,100,50);
@@ -46,26 +44,39 @@ AtDistortionPluginAudioProcessorEditor::AtDistortionPluginAudioProcessorEditor (
     addAndMakeVisible(&resSlider);
     
     
+    // Parameter for Wet/Dry distortion square wave
+    wetSlider.setSliderStyle(juce::Slider::LinearVertical);
+    wetSlider.setRange(0.1f,1.0f,.1f);
+    wetSlider.setTextBoxStyle(juce::Slider::TextBoxAbove,true,100,50);
+    wetSlider.setValue(0.0f);
+    resSlider.setTextValueSuffix(" Wet/Dry");
+    addAndMakeVisible(&wetSlider);
+    
+    
     
    
  
-    
+    // Act on changes to sliders
     freqSlider.addListener(this);
     resSlider.addListener(this);
     midiVolume.addListener(this);
+    wetSlider.addListener(this);
 }
 
 AtDistortionPluginAudioProcessorEditor::~AtDistortionPluginAudioProcessorEditor()
 {
 }
 
+
 void AtDistortionPluginAudioProcessorEditor::sliderValueChanged(juce::Slider* slider){
     
-    audioProcessor.noteOnVel = midiVolume.getValue();
+    audioProcessor.volValue = midiVolume.getValue();
 
     audioProcessor.freqValue = freqSlider.getValue();
     
     audioProcessor.resValue = resSlider.getValue();
+    
+    audioProcessor.wetValue = wetSlider.getValue();
     
     
 }
@@ -84,13 +95,14 @@ void AtDistortionPluginAudioProcessorEditor::paint (juce::Graphics& g)
 
 void AtDistortionPluginAudioProcessorEditor::resized()
 {
-    
+    //draw sliders
     midiVolume.setBounds(100,30,100,getHeight()-200);
     
     freqSlider.setBounds(200,30,100,getHeight()-200);
     
     resSlider.setBounds(300,30,100,getHeight()-200);
-   // midiVolume.setbou
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
+    
+    wetSlider.setBounds(400,40,100,getHeight()-200);
+
+   
 }

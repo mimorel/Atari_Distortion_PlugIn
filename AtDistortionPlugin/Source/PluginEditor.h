@@ -19,12 +19,13 @@ class AtDistortionPluginAudioProcessorEditor  : public juce::AudioProcessorEdito
                                                 private juce::Slider::Listener
 {
 public:
-    AtDistortionPluginAudioProcessorEditor (AtDistortionPluginAudioProcessor&);
+    AtDistortionPluginAudioProcessorEditor (class AtDistortionPluginAudioProcessor&);
     ~AtDistortionPluginAudioProcessorEditor() override;
 
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
+
 
 private:
     
@@ -39,6 +40,8 @@ private:
     juce::Slider freqSlider; // frequency float value for high pass filter
     
     juce::Slider resSlider; // resonance float value for high pass filter
+    
+    juce::Slider wetSlider; // how much of square wave distortion to apply 
     
 
     

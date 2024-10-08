@@ -8,8 +8,6 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-//#include "Distortion.h"
-
 
 
 
@@ -18,22 +16,29 @@
 AtDistortionPluginAudioProcessor::AtDistortionPluginAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
+
                      #if ! JucePlugin_IsMidiEffect
                       #if ! JucePlugin_IsSynth
                        .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       ),  highPassFilter(juce::dsp::IIR::Coefficients<float>::makeHighPass(44100.0f, 600.0f, 0.1f))
+                       ), highPassFilter(juce::dsp::IIR::Coefficients<float>::makeHighPass(44100.0f, 600.0f, 0.1f))
+
 #endif
 {
-    freqValue= 600.0f; //initializing highpass frequency to avoid errors
-    resValue = 0.1f;
+    
 }
 
 AtDistortionPluginAudioProcessor::~AtDistortionPluginAudioProcessor()
 {
+    juce::dsp::Oscillator<float> squareWave; // square wave for distortion
+    squareWave.initialise([](float x) {return x < 0.0f ? -1.0f : 1.0f; }, 128);
+    freqValue= 600.0f; //initializing highpass frequency to avoid errors
+    resValue = 0.1f;
     
+    createEditor();
+
 }
 
 //==============================================================================
@@ -108,12 +113,12 @@ void AtDistortionPluginAudioProcessor::prepareToPlay (double sampleRate, int sam
     spec.sampleRate = sampleRate;
     spec.maximumBlockSize = samplesPerBlock;
     spec.numChannels = getTotalNumInputChannels();
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+
+   // dsp::Oscillator< float >::Oscillator    (        )
     
-   
-    highPassFilter.prepare(spec);
     highPassFilter.reset();
+    highPassFilter.prepare(spec);
+    
 }
 
 void AtDistortionPluginAudioProcessor::releaseResources()
@@ -154,27 +159,45 @@ void AtDistortionPluginAudioProcessor::updateFilter(){
     *highPassFilter.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(lastSampleRate,freqValue,resValue);
 }
 
-void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
-
-
-{
-    buffer.applyGain(noteOnVel); //volume update
-
+void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
+    buffer.applyGain(volValue); //volume update
+    
     
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-
- 
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
-
-    juce::dsp::AudioBlock<float> block (buffer); //highpass filter 
+    
+    
+   
+    juce::dsp::AudioBlock<float> block (buffer); //highpass filter
     updateFilter();
     highPassFilter.process(juce::dsp::ProcessContextReplacing <float> (block));
-
-   
     
+    squareWave.setFrequency(440.0f);
+    juce::dsp::ProcessSpec spec;
+            spec.sampleRate = 44100.0;
+            spec.maximumBlockSize = 512;
+            spec.numChannels = 2;
+    squareWave.prepare(spec);
+    
+    
+    // multiple against square wave
+    // make square wave and multiply against audio
+    // Multiply the square wave against the incoming audio signal
+    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+    {
+        auto* channelData = buffer.getWritePointer(channel);
+        for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
+        {
+            channelData[sample] = squareWave.processSample(sample); // Multiply the square wave and audio
+        }
+        
+        
+        
+        
+        
+        
+    }
 }
 
 //==============================================================================
@@ -185,7 +208,7 @@ bool AtDistortionPluginAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* AtDistortionPluginAudioProcessor::createEditor()
 {
-    return new AtDistortionPluginAudioProcessorEditor (*this);
+    return new class AtDistortionPluginAudioProcessorEditor(*this);
 }
 
 //==============================================================================
