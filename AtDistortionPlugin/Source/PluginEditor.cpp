@@ -21,7 +21,7 @@ AtDistortionPluginAudioProcessorEditor::AtDistortionPluginAudioProcessorEditor (
     
     //define parameters for volume slider
     midiVolume.setSliderStyle(juce::Slider::LinearVertical);
-    midiVolume.setRange(0.0,127,1.0);
+    midiVolume.setRange(0.0,127,.5f);
     midiVolume.setTextBoxStyle(juce::Slider::TextBoxAbove,true,100,50);
     midiVolume.setValue(50.0);
     midiVolume.setTextValueSuffix(" Vol");
@@ -49,7 +49,7 @@ AtDistortionPluginAudioProcessorEditor::AtDistortionPluginAudioProcessorEditor (
     wetSlider.setRange(0.1f,1.0f,.1f);
     wetSlider.setTextBoxStyle(juce::Slider::TextBoxAbove,true,100,50);
     wetSlider.setValue(0.0f);
-    resSlider.setTextValueSuffix(" Wet/Dry");
+    wetSlider.setTextValueSuffix(" Wet/Dry");
     addAndMakeVisible(&wetSlider);
     
     
@@ -96,13 +96,13 @@ void AtDistortionPluginAudioProcessorEditor::paint (juce::Graphics& g)
 void AtDistortionPluginAudioProcessorEditor::resized()
 {
     //draw sliders
-    midiVolume.setBounds(100,30,100,getHeight()-200);
+    midiVolume.setBounds(50,30,100,getHeight()-200);
     
-    freqSlider.setBounds(200,30,100,getHeight()-200);
+    freqSlider.setBounds(150,30,100,getHeight()-200);
     
-    resSlider.setBounds(300,30,100,getHeight()-200);
+    resSlider.setBounds(250,30,100,getHeight()-200);
     
-    wetSlider.setBounds(400,40,100,getHeight()-200);
+    wetSlider.setBounds(350,30,100,getHeight()-200);
 
    
 }

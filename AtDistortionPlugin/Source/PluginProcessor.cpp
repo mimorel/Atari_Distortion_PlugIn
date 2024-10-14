@@ -23,20 +23,16 @@ AtDistortionPluginAudioProcessor::AtDistortionPluginAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       ), highPassFilter(juce::dsp::IIR::Coefficients<float>::makeHighPass(44100.0f, 600.0f, 0.1f))
+                       ), highPassFilter(juce::dsp::IIR::Coefficients<float>::makeHighPass(44100.0f, 100.0f, 0.1f))
+
 
 #endif
 {
-    
+
 }
 
 AtDistortionPluginAudioProcessor::~AtDistortionPluginAudioProcessor()
 {
-    juce::dsp::Oscillator<float> squareWave; // square wave for distortion
-    squareWave.initialise([](float x) {return x < 0.0f ? -1.0f : 1.0f; }, 128);
-    freqValue= 600.0f; //initializing highpass frequency to avoid errors
-    resValue = 0.1f;
-    
     createEditor();
 
 }
@@ -106,19 +102,29 @@ void AtDistortionPluginAudioProcessor::changeProgramName (int index, const juce:
 
 //==============================================================================
 void AtDistortionPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+
 {
+    freqValue= 160.0f; //initializing highpass frequency to avoid errors
+    resValue = 0.5f;
     lastSampleRate = sampleRate;
-    
+
     juce::dsp::ProcessSpec spec;
     spec.sampleRate = sampleRate;
+
     spec.maximumBlockSize = samplesPerBlock;
     spec.numChannels = getTotalNumInputChannels();
 
-   // dsp::Oscillator< float >::Oscillator    (        )
-    
+
     highPassFilter.reset();
     highPassFilter.prepare(spec);
     
+    
+    juce::dsp::Oscillator<float>  squareWave = juce::dsp::Oscillator<float>() ; // square wave for distortion
+
+ 
+    
+
+
 }
 
 void AtDistortionPluginAudioProcessor::releaseResources()
@@ -155,12 +161,14 @@ bool AtDistortionPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout
 
 
 void AtDistortionPluginAudioProcessor::updateFilter(){
-    
     *highPassFilter.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(lastSampleRate,freqValue,resValue);
+
 }
 
 void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
-    buffer.applyGain(volValue); //volume update
+    squareWave.initialise([](float x) {return x < 0.0f ? -1.0f : 1.0f; }, 128);
+
+    
     
     
     juce::ScopedNoDenormals noDenormals;
@@ -170,26 +178,44 @@ void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& b
     
    
     juce::dsp::AudioBlock<float> block (buffer); //highpass filter
-    updateFilter();
-    highPassFilter.process(juce::dsp::ProcessContextReplacing <float> (block));
+
+
+    
     
     squareWave.setFrequency(440.0f);
     juce::dsp::ProcessSpec spec;
             spec.sampleRate = 44100.0;
             spec.maximumBlockSize = 512;
             spec.numChannels = 2;
-    squareWave.prepare(spec);
     
+    
+    
+    squareWave.prepare(spec);
+   
+    
+    
+    
+    squareWave.process(juce::dsp::ProcessContextReplacing<float> (block));
+
+
+
     
     // multiple against square wave
     // make square wave and multiply against audio
     // Multiply the square wave against the incoming audio signal
+  //  squareWave.process(block);
+
     for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
     {
+        
+
         auto* channelData = buffer.getWritePointer(channel);
         for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
         {
-            channelData[sample] = squareWave.processSample(sample); // Multiply the square wave and audio
+
+
+            //channelData[sample] = squareWave.processSample(sample); // Multiply the square wave and audio
+
         }
         
         
@@ -198,6 +224,16 @@ void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& b
         
         
     }
+    
+    
+    updateFilter();
+
+    highPassFilter.process(juce::dsp::ProcessContextReplacing <float> (block));
+    
+    
+    buffer.applyGain(volValue); //volume update
+
+
 }
 
 //==============================================================================

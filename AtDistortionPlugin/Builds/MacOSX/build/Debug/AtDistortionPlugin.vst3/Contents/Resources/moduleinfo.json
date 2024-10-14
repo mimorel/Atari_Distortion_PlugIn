@@ -18,7 +18,7 @@
       "Name": "AtDistortionPlugin",
       "Vendor": "yourcompany",
       "Version": "1.0.0",
-      "SDKVersion": "VST 3.7.8",
+      "SDKVersion": "VST 3.7.12",
       "Sub Categories": [
         "Fx",
       ],
@@ -33,7 +33,7 @@
       "Name": "AtDistortionPlugin",
       "Vendor": "yourcompany",
       "Version": "1.0.0",
-      "SDKVersion": "VST 3.7.8",
+      "SDKVersion": "VST 3.7.12",
       "Sub Categories": [
         "Fx",
       ],
@@ -48,7 +48,7 @@
       "Name": "AtDistortionPlugin",
       "Vendor": "yourcompany",
       "Version": "1.0.0",
-      "SDKVersion": "VST 3.7.8",
+      "SDKVersion": "VST 3.7.12",
       "Class Flags": 0,
       "Cardinality": 2147483647,
       "Snapshots": [
