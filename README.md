@@ -1,6 +1,5 @@
 # Atari_Distortion_PlugIn
-This project is still in progress. So Far I have added a high pass filter and a GUI with volume, filter freqeuency, and filter resonance sliders. My next step is the implement the square wave distortion. 
-I'm currently using my device's input as a sound source as I await for a midi cable. 
+
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
