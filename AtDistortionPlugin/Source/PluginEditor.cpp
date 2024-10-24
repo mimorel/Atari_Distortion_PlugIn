@@ -21,9 +21,9 @@ AtDistortionPluginAudioProcessorEditor::AtDistortionPluginAudioProcessorEditor (
     
     //define parameters for volume slider
     midiVolume.setSliderStyle(juce::Slider::LinearVertical);
-    midiVolume.setRange(0.0,127,.5f);
+    midiVolume.setRange(0.00f,127.00f,00.5f);
     midiVolume.setTextBoxStyle(juce::Slider::TextBoxAbove,true,100,50);
-    midiVolume.setValue(50.0);
+    midiVolume.setValue(20.0);
     midiVolume.setTextValueSuffix(" Vol");
     addAndMakeVisible(&midiVolume);
     
@@ -46,7 +46,7 @@ AtDistortionPluginAudioProcessorEditor::AtDistortionPluginAudioProcessorEditor (
     
     // Parameter for Wet/Dry distortion square wave
     wetSlider.setSliderStyle(juce::Slider::LinearVertical);
-    wetSlider.setRange(0.1f,1.0f,.1f);
+    wetSlider.setRange(0.0f,1.0f,.1f);
     wetSlider.setTextBoxStyle(juce::Slider::TextBoxAbove,true,100,50);
     wetSlider.setValue(0.0f);
     wetSlider.setTextValueSuffix(" Wet/Dry");
