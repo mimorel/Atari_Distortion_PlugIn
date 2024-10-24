@@ -181,8 +181,9 @@ void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& b
     
 
     dryWetMix.prepare(spec);
-    dryWetMix.setWetMixProportion(wetValue);
-    
+    if (wetValue >0 && wetValue < 1) {
+        dryWetMix.setWetMixProportion(wetValue);
+    }
     
     squareWave.initialise([](float x) {return x < 0.0f ? -1.0f : 1.0f; }, 128);
 
