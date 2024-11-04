@@ -79,8 +79,8 @@ private:
     
     
     
-    
-    juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> highPassFilter;// allows us to process in stereo
+    juce::dsp::ProcessSpec spec;
+    //juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> highPassFilter;// allows us //to process in stereo
     juce::dsp::Oscillator<float> squareWave; // square wave for distortion
     juce::dsp::DryWetMixer<float> dryWetMix;
 
