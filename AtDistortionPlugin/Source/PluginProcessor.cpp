@@ -27,11 +27,13 @@ AtDistortionPluginAudioProcessor::AtDistortionPluginAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       )//, highPassFilter(juce::dsp::IIR::Coefficients<float>::makeHighPass(44100.0f, 100.0f, 0.1f))
+                       ), highPassFilter(juce::dsp::IIR::Coefficients<float>::makeHighPass(44100.0f, 100.0f, 0.1f))
+
 
 
 #endif
 {
+
 
 }
 
@@ -39,7 +41,13 @@ AtDistortionPluginAudioProcessor::~AtDistortionPluginAudioProcessor()
 {
     createEditor();
 
+
 }
+
+
+juce::dsp::ProcessSpec spec;
+auto sampleRate = 44100.0f;
+
 
 //==============================================================================
 const juce::String AtDistortionPluginAudioProcessor::getName() const
@@ -113,18 +121,13 @@ void AtDistortionPluginAudioProcessor::prepareToPlay (double sampleRate, int sam
     lastSampleRate = 44100.0f;
    
 
-    juce::dsp::ProcessSpec spec;
-    spec.sampleRate = 44100.0;
-    
-
+    spec.sampleRate = sampleRate;
     spec.numChannels = getTotalNumInputChannels();
-    
-    
-    spec.maximumBlockSize = 512;
+    spec.maximumBlockSize = samplesPerBlock;
 
 
-   // highPassFilter.reset();
-    //highPassFilter.prepare(spec);
+    highPassFilter.reset();
+    highPassFilter.prepare(spec);
     
     
     juce::dsp::Oscillator<float>  squareWave = juce::dsp::Oscillator<float>() ; // square wave for distortion
@@ -172,7 +175,7 @@ bool AtDistortionPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout
 
 
 void AtDistortionPluginAudioProcessor::updateFilter(){
- //   *highPassFilter.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(lastSampleRate,freqValue,resValue);
+    *highPassFilter.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(lastSampleRate,freqValue,resValue);
 
 }
 
@@ -183,12 +186,10 @@ void AtDistortionPluginAudioProcessor::updateFilter(){
 
 
 juce::dsp::AudioBlock<float>   squareWaveBuffer(juce::AudioBuffer<float> buffer) {
-    
-    juce::dsp::ProcessSpec spec;
-    spec.sampleRate = 44100.0;
-    spec.numChannels = buffer.getNumChannels();
-    spec.maximumBlockSize = buffer.getNumSamples();
 
+    spec.maximumBlockSize = buffer.getNumSamples();
+    spec.sampleRate = sampleRate;
+    spec.numChannels = buffer.getNumChannels();
     
     juce::AudioBuffer<float> squareWaveBuffer  = juce::AudioBuffer<float>(2, 512);
     squareWaveBuffer.clear();
@@ -216,14 +217,11 @@ juce::dsp::AudioBlock<float>   squareWaveBuffer(juce::AudioBuffer<float> buffer)
 
 void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
     juce::ScopedNoDenormals noDenormals;
-
-    auto totalNumInputChannels = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
     
-    juce::dsp::ProcessSpec spec;
-    spec.sampleRate = 44100.0;
-    spec.numChannels = getTotalNumInputChannels();
+    
+    spec.numChannels = buffer.getNumChannels();
     spec.maximumBlockSize = buffer.getNumSamples();
+    spec.sampleRate = sampleRate;
     
     
     
@@ -237,7 +235,6 @@ void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& b
 
     
     juce::dsp::AudioBlock<float> outputBlock (outputBuffer);
-    //juce::dsp::ProcessContextNonReplacing<float> context (block, block);
     juce::dsp::ProcessContextReplacing<float> context (block);
 
     //Changes incoming signals gain
@@ -249,7 +246,6 @@ void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& b
             
 
             channelData[sample] = squareWaveValues.getSample(channel, sample) * block.getSample(channel, sample);
-
             
         }
         
@@ -257,40 +253,30 @@ void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& b
     
     
     
-    dryWetMix.reset();
-    dryWetMix.prepare(spec);
-    if (wetValue >0 && wetValue < 1) {
-        dryWetMix.setWetMixProportion(wetValue);
-    }
+    updateFilter();
         
+    highPassFilter.process(juce::dsp::ProcessContextReplacing <float> (block));
+    highPassFilter.process(juce::dsp::ProcessContextReplacing <float> (outputBlock));
+    
+    
     
     buffer.applyGain(volValue);
     outputBuffer.applyGain(volValue);
-
     
-    
+    dryWetMix.reset();
+    dryWetMix.prepare(spec);
+    if (wetValue >0 && wetValue < 1) {
+        dryWetMix.setWetMixProportion(1 - wetValue);
+    }
+        
     dryWetMix.pushDrySamples(outputBlock);
     dryWetMix.mixWetSamples(block);
     
     
 
     
+
     
-    
-    
-    /*
-   
-    
-    
-    juce::dsp::AudioBlock<float> block (buffer); //highpass filter
-    //   juce::dsp::AudioBlock<float> block2 (buffer); //highpass filter
-    */
-    
-    
-        // updateFilter();
-        
-        //  highPassFilter.process(juce::dsp::ProcessContextReplacing <float> (block));
-        // highPassFilter.process(juce::dsp::ProcessContextReplacing <float> (block2));
         
         
 }

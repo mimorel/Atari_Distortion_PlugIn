@@ -8,6 +8,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "../JuceLibraryCode/JuceHeader.h"
 
 //==============================================================================
 AtDistortionPluginAudioProcessorEditor::AtDistortionPluginAudioProcessorEditor (AtDistortionPluginAudioProcessor& p)
@@ -16,7 +17,7 @@ AtDistortionPluginAudioProcessorEditor::AtDistortionPluginAudioProcessorEditor (
     getLookAndFeel().setColour (juce::Slider::thumbColourId, juce::Colours::red);
     getLookAndFeel().setColour (juce::Slider::trackColourId, juce::Colours::lightgrey);
     getLookAndFeel().setColour (juce::Slider::backgroundColourId, juce::Colours::grey);
-
+   
    // getLookAndFeel().setColour (juce::Slider::backgroundColourId, juce::Colour(112, 74, 8));
 
 
@@ -98,10 +99,10 @@ void AtDistortionPluginAudioProcessorEditor::sliderValueChanged(juce::Slider* sl
 //==============================================================================
 void AtDistortionPluginAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-   // g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
     g.fillAll(juce::Colours::black);
-    g.setFont (40.0f);
+    
+    juce::FontOptions fo1("futura", 40.0f, 1);
+    g.setFont(fo1);
     
     g.setColour (juce::Colours::grey);
     g.drawFittedText ("Atari Distortion Plug-in ", -1.5,19, getWidth(),50, juce::Justification::centred, 1);
