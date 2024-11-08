@@ -70,6 +70,8 @@ public:
     void updateFilter();
     
     void updateParameters();
+    juce::dsp::AudioBlock<float> createSquareWaveBuffer();
+
 
 private:
     float lastSampleRate;
@@ -81,8 +83,14 @@ private:
     
     juce::dsp::ProcessSpec spec;
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> highPassFilter;// allows us //to process in stereo
-    juce::dsp::Oscillator<float> squareWave; // square wave for distortion
+    juce::dsp::AudioBlock<float> squareWaveValues;
+    juce::AudioBuffer<float> squareWaveBuffer;
+    juce::dsp::Oscillator<float> squareWave;
+
+
     juce::dsp::DryWetMixer<float> dryWetMix;
+    juce::AudioBuffer<float> outputBuffer;
+
 
 
     

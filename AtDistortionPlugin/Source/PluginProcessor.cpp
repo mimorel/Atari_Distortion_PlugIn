@@ -15,7 +15,6 @@
 
 
 
-
 //==============================================================================
 AtDistortionPluginAudioProcessor::AtDistortionPluginAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -45,7 +44,6 @@ AtDistortionPluginAudioProcessor::~AtDistortionPluginAudioProcessor()
 }
 
 
-juce::dsp::ProcessSpec spec;
 auto sampleRate = 44100.0f;
 
 
@@ -113,6 +111,12 @@ void AtDistortionPluginAudioProcessor::changeProgramName (int index, const juce:
 
 
 //==============================================================================
+
+
+
+
+
+
 void AtDistortionPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 
 {
@@ -120,25 +124,54 @@ void AtDistortionPluginAudioProcessor::prepareToPlay (double sampleRate, int sam
     resValue = 0.5f;
     lastSampleRate = 44100.0f;
    
-
+    
     spec.sampleRate = sampleRate;
-    spec.numChannels = getTotalNumInputChannels();
+    spec.numChannels = 2;
     spec.maximumBlockSize = samplesPerBlock;
 
 
     highPassFilter.reset();
     highPassFilter.prepare(spec);
     
-    // square wave for distortion
-    juce::dsp::Oscillator<float>  squareWave = juce::dsp::Oscillator<float>() ;
 
  
-    juce::dsp::DryWetMixer<float> dryWetMix = juce::dsp::DryWetMixer<float>();
-    dryWetMix.reset();
+     dryWetMix = juce::dsp::DryWetMixer<float>();
+     dryWetMix.prepare(spec);
+
+    
+     outputBuffer = juce::AudioBuffer<float>(2, 512);
     
     
+     squareWaveBuffer  = juce::AudioBuffer<float>(2, 512);
+     
+     
+    // creating & prepping square wave
+    squareWave.initialise([](float x) {return x < 0.0f ? -1.0f : 1.0f; }, 128);
+    squareWave.prepare(spec);
+
+    
+
+    
+}
 
 
+/**
+ This function returns a buffer than has been filled with values from a square wave.
+ The input it the buffer from the processing block. This is used to decide the size of the buffer
+ */
+ juce::dsp::AudioBlock<float>  AtDistortionPluginAudioProcessor::createSquareWaveBuffer() {
+
+     squareWaveBuffer.clear();
+     // processing square wave & filling buffer
+     juce::dsp::AudioBlock<float> squaredBlock (squareWaveBuffer);
+
+     juce::dsp::ProcessContextReplacing<float> squareContext(squaredBlock);
+    squareWave.process(squareContext);
+
+     
+     return squareContext.getOutputBlock();
+
+    
 }
 
 void AtDistortionPluginAudioProcessor::releaseResources()
@@ -186,44 +219,6 @@ void AtDistortionPluginAudioProcessor::updateFilter(){
     
 
 
-
-/**
- This function returns a buffer than has been filled with values from a square wave.
- The input it the buffer from the processing block. This is used to decide the size of the buffer
- */
-juce::dsp::AudioBlock<float>   squareWaveBuffer(juce::AudioBuffer<float> buffer) {
-
-    // spec for preparing square wave
-    spec.maximumBlockSize = buffer.getNumSamples();
-    spec.sampleRate = sampleRate;
-    spec.numChannels = buffer.getNumChannels();
-    
-    // creating square wave buffer
-    juce::AudioBuffer<float> squareWaveBuffer  = juce::AudioBuffer<float>(2, 512);
-    squareWaveBuffer.clear();
-  
-
-
-    // creating & prepping square wave
-    juce::dsp::Oscillator<float> squareWave;
-    
-    squareWave.initialise([](float x) {return x < 0.0f ? -1.0f : 1.0f; }, 128);
-    squareWave.prepare(spec);
-    
-
-    // processing square wave & filling buffer
-    juce::dsp::AudioBlock<float> squaredBlock (squareWaveBuffer);
-    juce::dsp::ProcessContextReplacing<float> squareContext (squaredBlock);
-    squareWave.process(squareContext);
-
-    
-     
-   
-    return squareContext.getOutputBlock();
-    
-}
-
-
 /**
  Process audio & apply square wave distortion & high pass filter.
  
@@ -231,39 +226,37 @@ juce::dsp::AudioBlock<float>   squareWaveBuffer(juce::AudioBuffer<float> buffer)
 void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
     juce::ScopedNoDenormals noDenormals;
     
-    // update spec w/ info from given buffer
-    spec.numChannels = buffer.getNumChannels();
-    spec.maximumBlockSize = buffer.getNumSamples();
-    spec.sampleRate = sampleRate;
+    squareWaveValues = createSquareWaveBuffer();
+
     
-    
-    // prepare; get buffer filled with square wave value; create output buffer & necessary blocks and context
-    juce::dsp::AudioBlock<float> squareWaveValues = squareWaveBuffer(buffer);
 
     
     juce::dsp::AudioBlock<float> block (buffer);
-    
-    juce::AudioBuffer<float> outputBuffer(buffer.getNumChannels(), buffer.getNumSamples());
+    outputBuffer.clear();
     juce::dsp::AudioBlock<float> outputBlock (outputBuffer);
     
     juce::dsp::ProcessContextReplacing<float> context (block);
 
-    
+
+
     
     //fill output buffer with distorted signal; basically multiply samples in square wave buffer against original audio buffer
     for (int channel = 0; channel < outputBuffer.getNumChannels(); channel++) {
 
         auto* channelData = outputBuffer.getWritePointer(channel);
-
+       
         for (int sample = 0; sample < outputBuffer.getNumSamples(); sample++){
+            channelData[sample] = squareWaveValues.getSample(channel, sample) * block.getSample(channel, sample);
             
 
-            channelData[sample] = squareWaveValues.getSample(channel, sample) * block.getSample(channel, sample);
             
         }
         
     }
     
+    
+  
+   
     
     // apply highpass filter to overall sound
     updateFilter();
@@ -273,19 +266,21 @@ void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& b
     
     
     //apply new volume to overall sound
-    buffer.applyGain(volValue);
-    outputBuffer.applyGain(volValue);
+    buffer.applyGain(volValue/30);
+    outputBuffer.applyGain(volValue/30);
     
     //apply dry/wet mix so we can hear both original audio & changed audio
-    dryWetMix.reset();
-    dryWetMix.prepare(spec);
-    if (wetValue >0 && wetValue < 1) {
-        dryWetMix.setWetMixProportion(1 - wetValue);
-    }
-        
-    dryWetMix.pushDrySamples(outputBlock);
-    dryWetMix.mixWetSamples(block);
     
+    if (wetValue >0 && wetValue < 1) {
+        dryWetMix.setWetMixProportion(1- wetValue);
+    }
+
+    
+    
+    dryWetMix.pushDrySamples(outputBlock);
+  
+    dryWetMix.mixWetSamples(block);
+   
     
 
         
