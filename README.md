@@ -12,7 +12,9 @@ For the project I am using Juce 7 and C++.
 
 GUI
 
-<img width="501" alt="Screenshot 2024-11-24 at 11 07 59 PM" src="https://github.com/user-attachments/assets/fbd2d1c8-ee71-4ed1-b541-364492fc173f">
+<img width="497" alt="Screenshot 2024-11-24 at 11 16 23 PM" src="https://github.com/user-attachments/assets/a168b3f3-8483-4bd7-a2bc-1f7047a054dc">
+
+
 
 
 
