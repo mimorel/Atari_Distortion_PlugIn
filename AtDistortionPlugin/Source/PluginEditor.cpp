@@ -37,7 +37,7 @@ AtDistortionPluginAudioProcessorEditor::AtDistortionPluginAudioProcessorEditor (
     midiVolume.setTextBoxStyle(juce::Slider::TextBoxAbove,true,97,50);
 
     midiVolume.setValue(0.1f);
-    midiVolume.setTextValueSuffix("\n \n Volume ");
+    midiVolume.setTextValueSuffix("\n \n Gain ");
     addAndMakeVisible(&midiVolume);
     
     // define parameteres for frequency of high pass filter
