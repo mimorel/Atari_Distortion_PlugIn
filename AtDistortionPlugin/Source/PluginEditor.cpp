@@ -15,7 +15,7 @@ AtDistortionPluginAudioProcessorEditor::AtDistortionPluginAudioProcessorEditor (
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
     getLookAndFeel().setColour (juce::Slider::thumbColourId, juce::Colours::red);
-    getLookAndFeel().setColour (juce::Slider::trackColourId, juce::Colours::grey);
+    getLookAndFeel().setColour (juce::Slider::trackColourId, juce::Colour (143, 26, 13)); // dark red
     getLookAndFeel().setColour (juce::Slider::backgroundColourId, juce::Colour (237, 199, 183));
     getLookAndFeel().setColour (juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
 
@@ -115,6 +115,15 @@ void AtDistortionPluginAudioProcessorEditor::paint (juce::Graphics& g)
     g.setColour (juce::Colours::white);
     g.drawFittedText ("Atari Distortion Plug-in ", 0,20, getWidth(),75, juce::Justification::centred, 1);
     
+    
+    //SubTitles
+    juce::FontOptions fo2("futura", 20.0f, 1);
+    g.setFont(fo2);
+
+    g.drawFittedText ("SquareWave", startingx * 1.5,120, getWidth(),25, juce::Justification::left, 1);
+    g.drawFittedText ("High Pass Filter", (startingx*5),120, getWidth(),25, juce::Justification::left, 1);
+
+    
 
     
 
@@ -136,12 +145,11 @@ void AtDistortionPluginAudioProcessorEditor::paint (juce::Graphics& g)
 
     //Highpass Section
     g.setColour (juce::Colour (166, 84, 48)); // brown
-    g.fillRoundedRectangle((startingx + distanceBetween *2), startingY, width*2, (getHeight()/2.12), 5);
+    g.fillRoundedRectangle((startingx + distanceBetween *2.25), startingY, width*2, (getHeight()/2.12), 5);
     g.setColour (juce::Colour (191, 102, 63)); // brown
-    g.drawRoundedRectangle((startingx + distanceBetween *2), startingY, width*2, (getHeight()/1.75), 5, 4);
+    g.drawRoundedRectangle((startingx + distanceBetween *2.25), startingY, width*2, (getHeight()/1.75), 5, 4);
     
 
-  //  g.drawRoundedRectangle(<#float x#>, <#float y#>, <#float width#>, <#float height#>, <#float cornerSize#>, <#float lineThickness#>)
 
 }
 
@@ -161,9 +169,9 @@ void AtDistortionPluginAudioProcessorEditor::resized()
     
     wetSlider.setBounds(startingx + distanceBetween,Top,width,length);
 
-    freqSlider.setBounds(startingx + distanceBetween*2,Top,width,length);
+    freqSlider.setBounds(startingx + distanceBetween*2.25,Top,width,length);
 
-    resSlider.setBounds(startingx + distanceBetween*3 - distanceBetween/10,Top,width,length);
+    resSlider.setBounds(startingx + distanceBetween*3.25 - distanceBetween/10,Top,width,length);
     
 
    
