@@ -145,7 +145,6 @@ void AtDistortionPluginAudioProcessor::prepareToPlay (double sampleRate, int sam
      
     // creating & prepping square wave
     squareWave.initialise([](float x) {return x < 0.0f ? -1.0f : 1.0f; }, 256);
-    squareWave.setFrequency(200);
     squareWave.prepare(spec);
 
 }
@@ -162,9 +161,9 @@ void AtDistortionPluginAudioProcessor::prepareToPlay (double sampleRate, int sam
      juce::dsp::AudioBlock<float> squaredBlock (squareWaveBuffer);
 
      juce::dsp::ProcessContextReplacing<float> squareContext(squaredBlock);
-    squareWave.process(squareContext);
-
+     squareWave.process(squareContext);
      return squareContext.getOutputBlock();
+     
 }
 
 void AtDistortionPluginAudioProcessor::releaseResources()
@@ -251,13 +250,13 @@ void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& b
     
     
     //apply new volume to overall sound
-    buffer.applyGain(volValue/2);
-    outputBuffer.applyGain(volValue/2);
+    buffer.applyGain(volValue/10);
+    outputBuffer.applyGain(volValue/10);
     
     //apply dry/wet mix so we can hear both original audio & changed audio
     
     if (wetValue >0 && wetValue < 1) {
-        dryWetMix.setWetMixProportion(1- wetValue);
+        dryWetMix.setWetMixProportion(wetValue);
     }
 
     dryWetMix.pushDrySamples(outputBlock);

@@ -9,8 +9,6 @@
             file="Source/PluginProcessor.cpp"/>
       <FILE id="b00HIb" name="PluginProcessor.h" compile="0" resource="0"
             file="Source/PluginProcessor.h"/>
-      <FILE id="UlMH6c" name="Distortion.cpp" compile="1" resource="0" file="Source/Distortion.cpp"/>
-      <FILE id="aHrPxj" name="Distortion.h" compile="0" resource="0" file="Source/Distortion.h"/>
       <FILE id="OdkyqI" name="PluginEditor.cpp" compile="1" resource="0"
             file="Source/PluginEditor.cpp"/>
       <FILE id="pNd3N8" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
