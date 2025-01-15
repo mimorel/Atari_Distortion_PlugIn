@@ -37,9 +37,9 @@ private:
     
     juce::Slider midiVolume; // volume for outgoing sound
     
-    juce::Slider freqSlider; // frequency float value for high pass filter
+    juce::Slider freqSlider; // frequency float value for low pass filter
     
-    juce::Slider resSlider; // resonance float value for high pass filter
+    juce::Slider resSlider; // resonance float value for low pass filter
     
     juce::Slider wetSlider; // how much of square wave distortion to apply 
     

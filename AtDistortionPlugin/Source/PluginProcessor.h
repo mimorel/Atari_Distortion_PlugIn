@@ -70,7 +70,7 @@ public:
     void updateFilter();
     
     void updateParameters();
-    juce::dsp::AudioBlock<float> createSquareWaveBuffer();
+    juce::dsp::AudioBlock<float> fillSquareWaveBuffer();
 
 
 private:
@@ -82,7 +82,7 @@ private:
     
     
     juce::dsp::ProcessSpec spec;
-    juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> highPassFilter;// allows us //to process in stereo
+    juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>> lowPassFilter;// allows us //to process in stereo
     juce::dsp::AudioBlock<float> squareWaveValues;
     juce::AudioBuffer<float> squareWaveBuffer;
     juce::dsp::Oscillator<float> squareWave;

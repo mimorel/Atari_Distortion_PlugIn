@@ -29,19 +29,19 @@ AtDistortionPluginAudioProcessorEditor::AtDistortionPluginAudioProcessorEditor (
     
     //define parameters for volume slider
     midiVolume.setSliderStyle(juce::Slider::LinearVertical);
-    midiVolume.setRange(0.00f,127.00f,00.5f);
+    midiVolume.setRange(0.00f,1.00f,00.01f);
     midiVolume.setTextBoxStyle(juce::Slider::TextBoxBelow,true,97,50);
 
-    midiVolume.setValue(0.1f);
+    midiVolume.setValue(0.5f);
     midiVolume.setTextValueSuffix("\n \n Gain ");
     addAndMakeVisible(&midiVolume);
     
-    // define parameteres for frequency of high pass filter
+    // define parameteres for frequency of low pass filter
     freqSlider.setSliderStyle(juce::Slider::LinearVertical);
     freqSlider.setRange(21.0f,2000.0f,10);
     freqSlider.setTextBoxStyle(juce::Slider::TextBoxBelow,true,97,50);
     freqSlider.setValue(600.0f);
-    freqSlider.setTextValueSuffix("\n\n High-Pass");
+    freqSlider.setTextValueSuffix("\n\n Cut-Off");
     addAndMakeVisible(&freqSlider);
     
 
@@ -120,8 +120,8 @@ void AtDistortionPluginAudioProcessorEditor::paint (juce::Graphics& g)
     juce::FontOptions fo2("futura", 20.0f, 1);
     g.setFont(fo2);
 
-    g.drawFittedText ("SquareWave", startingx * 1.5,120, getWidth(),25, juce::Justification::left, 1);
-    g.drawFittedText ("High Pass Filter", (startingx*5),120, getWidth(),25, juce::Justification::left, 1);
+    g.drawFittedText ("Square Wave", startingx * 1.5,120, getWidth(),25, juce::Justification::left, 1);
+    g.drawFittedText ("Low Pass Filter", (startingx*5),120, getWidth(),25, juce::Justification::left, 1);
 
     
 
@@ -143,7 +143,7 @@ void AtDistortionPluginAudioProcessorEditor::paint (juce::Graphics& g)
     g.setColour (juce::Colour (191, 102, 63)); // brown
     g.drawRoundedRectangle((startingx + distanceBetween) , startingY, width, (getHeight()/1.75), 5, 4);
 
-    //Highpass Section
+    //LowPass Section
     g.setColour (juce::Colour (166, 84, 48)); // brown
     g.fillRoundedRectangle((startingx + distanceBetween *2.25), startingY, width*2, (getHeight()/2.12), 5);
     g.setColour (juce::Colour (191, 102, 63)); // brown

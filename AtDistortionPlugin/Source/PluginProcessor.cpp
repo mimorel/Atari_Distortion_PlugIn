@@ -7,8 +7,6 @@
 */
 
 
-// test at home before doing anything
-
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
@@ -26,7 +24,7 @@ AtDistortionPluginAudioProcessor::AtDistortionPluginAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       ), highPassFilter(juce::dsp::IIR::Coefficients<float>::makeHighPass(44100.0f, 100.0f, 0.1f))
+                       ), lowPassFilter(juce::dsp::IIR::Coefficients<float>::makeLowPass(44100.0f, 100.0f, 0.1f))
 
 
 
@@ -116,11 +114,14 @@ void AtDistortionPluginAudioProcessor::changeProgramName (int index, const juce:
 
 
 
-
+/**
+ All set up that has to be done only once, before processing.
+ 
+ */
 void AtDistortionPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 
 {
-    freqValue= 160.0f; //initializing highpass frequency to avoid errors
+    freqValue= 160.0f; //initializing lowPass frequency to avoid errors
     resValue = 0.5f;
     lastSampleRate = 44100.0f;
    
@@ -130,28 +131,23 @@ void AtDistortionPluginAudioProcessor::prepareToPlay (double sampleRate, int sam
     spec.maximumBlockSize = samplesPerBlock;
 
 
-    highPassFilter.reset();
-    highPassFilter.prepare(spec);
+    lowPassFilter.reset();
+    lowPassFilter.prepare(spec);
     
 
- 
-     dryWetMix = juce::dsp::DryWetMixer<float>();
-     dryWetMix.prepare(spec);
+    dryWetMix = juce::dsp::DryWetMixer<float>();
+    dryWetMix.prepare(spec);
 
     
-     outputBuffer = juce::AudioBuffer<float>(2, 512);
+    outputBuffer = juce::AudioBuffer<float>(2, 512);
     
-    
-     squareWaveBuffer  = juce::AudioBuffer<float>(2, 512);
-     
+    squareWaveBuffer  = juce::AudioBuffer<float>(2, 512);
      
     // creating & prepping square wave
-    squareWave.initialise([](float x) {return x < 0.0f ? -1.0f : 1.0f; }, 128);
+    squareWave.initialise([](float x) {return x < 0.0f ? -1.0f : 1.0f; }, 256);
+    squareWave.setFrequency(200);
     squareWave.prepare(spec);
 
-    
-
-    
 }
 
 
@@ -159,7 +155,7 @@ void AtDistortionPluginAudioProcessor::prepareToPlay (double sampleRate, int sam
  This function returns a buffer than has been filled with values from a square wave.
  The input it the buffer from the processing block. This is used to decide the size of the buffer
  */
- juce::dsp::AudioBlock<float>  AtDistortionPluginAudioProcessor::createSquareWaveBuffer() {
+ juce::dsp::AudioBlock<float>  AtDistortionPluginAudioProcessor::fillSquareWaveBuffer() {
 
      squareWaveBuffer.clear();
      // processing square wave & filling buffer
@@ -168,16 +164,15 @@ void AtDistortionPluginAudioProcessor::prepareToPlay (double sampleRate, int sam
      juce::dsp::ProcessContextReplacing<float> squareContext(squaredBlock);
     squareWave.process(squareContext);
 
-     
      return squareContext.getOutputBlock();
-
-    
 }
 
 void AtDistortionPluginAudioProcessor::releaseResources()
 {
-    // When playback stops, you can use this as an opportunity to free up any
-    // spare memory, etc.
+    squareWaveBuffer.clear();
+    outputBuffer.clear();
+
+
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -208,27 +203,22 @@ bool AtDistortionPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout
 
 
 /**
- Update highpass filter with any update values from editor.
+ Update lowPass filter with any update values from editor.
  */
 void AtDistortionPluginAudioProcessor::updateFilter(){
-    *highPassFilter.state = *juce::dsp::IIR::Coefficients<float>::makeHighPass(lastSampleRate,freqValue,resValue);
+    *lowPassFilter.state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(lastSampleRate,freqValue,resValue);
 
 }
 
-    
-    
-
 
 /**
- Process audio & apply square wave distortion & high pass filter.
+ Process audio & apply square wave distortion & low pass filter.
  
  */
 void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
     juce::ScopedNoDenormals noDenormals;
     
-    squareWaveValues = createSquareWaveBuffer();
-
-    
+    squareWaveValues = fillSquareWaveBuffer();
 
     
     juce::dsp::AudioBlock<float> block (buffer);
@@ -248,26 +238,21 @@ void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& b
         for (int sample = 0; sample < outputBuffer.getNumSamples(); sample++){
             channelData[sample] = squareWaveValues.getSample(channel, sample) * block.getSample(channel, sample);
             
-
-            
         }
-        
     }
     
-    
-  
    
     
-    // apply highpass filter to overall sound
+    // apply lowPass filter to overall sound
     updateFilter();
         
-    highPassFilter.process(juce::dsp::ProcessContextReplacing <float> (block));
-    highPassFilter.process(juce::dsp::ProcessContextReplacing <float> (outputBlock));
+    lowPassFilter.process(juce::dsp::ProcessContextReplacing <float> (block));
+    lowPassFilter.process(juce::dsp::ProcessContextReplacing <float> (outputBlock));
     
     
     //apply new volume to overall sound
-    buffer.applyGain(volValue/30);
-    outputBuffer.applyGain(volValue/30);
+    buffer.applyGain(volValue/2);
+    outputBuffer.applyGain(volValue/2);
     
     //apply dry/wet mix so we can hear both original audio & changed audio
     
@@ -275,15 +260,10 @@ void AtDistortionPluginAudioProcessor::processBlock (juce::AudioBuffer<float>& b
         dryWetMix.setWetMixProportion(1- wetValue);
     }
 
-    
-    
     dryWetMix.pushDrySamples(outputBlock);
-  
     dryWetMix.mixWetSamples(block);
    
     
-
-        
 }
 
 //==============================================================================
